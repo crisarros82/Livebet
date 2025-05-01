@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Bet</title>
+    <style>
+        body { font-family: Arial; text-align: center; }
+        .match { border: 1px solid #ccc; padding: 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Partido en Vivo</h1>
+    <div class="match">
+        <h2 id="matchTitle">Boca vs River</h2>
+        <div id="matchTime">00:00</div>
+        <div id="score">0 - 0</div>
+    </div>
+
+    <script>
+        // Actualizar cada 5 segundos
+        setInterval(() => {
+            fetch('https://opensheet.elk.sh/ID_DE_TU_HOJA/Hoja1')
+                .then(response => response.json())
+                .then(data => {
+                    const partido = data[0];
+                    document.getElementById('matchTime').textContent = 
+                        `${Math.floor(partido.Tiempo / 60)}:${partido.Tiempo % 60}`;
+                    document.getElementById('score').textContent = 
+                        `${partido.GolesLocal} - ${partido.GolesVisitante}`;
+                });
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel Admin</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Panel de Control</h1>
+    
+    <div>
+        <button id="startBtn">Iniciar 1° Tiempo</button>
+        <button id="pauseBtn">Pausar</button>
+        <button id="secondHalfBtn">Iniciar 2° Tiempo</button>
+        <button id="endBtn">Finalizar Partido</button>
+    </div>
+
+    <div id="timer">00:00</div>
+
+    <script>
+        let timer;
+        let seconds = 0;
+        const timerDisplay = document.getElementById('timer');
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            clearInterval(timer);
+            seconds = 0;
+            timer = setInterval(updateTimer, 1000);
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            clearInterval(timer);
+        });
+
+        document.getElementById('secondHalfBtn').addEventListener('click', () => {
+            clearInterval(timer);
+            seconds = 45 * 60; // Empieza en minuto 45
+            timer = setInterval(updateTimer, 1000);
+        });
+
+        function updateTimer() {
+            seconds++;
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Pausa automática al llegar a 45'
+            if (mins === 45 && secs === 0) {
+                clearInterval(timer);
+                alert("Fin del 1° tiempo");
+            }
+        }
+    </script>
+</body>
+</html>
