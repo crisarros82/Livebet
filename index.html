@@ -55,6 +55,16 @@
             color: #7f8c8d;
             margin-top: 15px;
         }
+        .debug {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+        }
     </style>
 </head>
 <body>
@@ -70,8 +80,14 @@
         <div class="last-update" id="lastUpdate">Última actualización: --</div>
     </div>
 
+    <!-- Área de depuración para ver los datos crudos -->
+    <div class="debug">
+        <h3>Datos recibidos de Google Sheets:</h3>
+        <pre id="debugData">Cargando...</pre>
+    </div>
+
     <script>
-        // TU ID DE GOOGLE SHEET (ya implementado)
+        // Configuración
         const SHEET_ID = "1C4NaNDCS0h_T34Ee6mHz4dCTTf_m3FuHId8-LypD_HY";
         const SHEET_NAME = "Hoja1";
         const API_URL = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_NAME}`;
@@ -80,36 +96,47 @@
             fetch(API_URL)
                 .then(response => response.json())
                 .then(data => {
+                    // Mostrar datos crudos para depuración
+                    document.getElementById('debugData').textContent = 
+                        JSON.stringify(data, null, 2);
+                    
                     if (data && data.length > 0) {
-                        const partido = data[0]; // Tomamos la primera fila de tu Sheet
+                        const partido = data[0];
                         
-                        // Actualiza la interfaz con los datos
+                        // Mapeo de columnas (ignorando mayúsculas/minúsculas)
+                        const getValue = (obj, key) => {
+                            const lowerKey = key.toLowerCase();
+                            const foundKey = Object.keys(obj).find(k => k.toLowerCase() === lowerKey);
+                            return obj[foundKey] || 0;
+                        };
+
+                        // Actualizar interfaz
                         document.getElementById('matchTitle').textContent = 
-                            `${partido.Local || "Local"} vs ${partido.Visitante || "Visitante"}`;
+                            `${getValue(partido, "Local")} vs ${getValue(partido, "Visitante")}`;
                         document.getElementById('matchTime').textContent = 
-                            `${partido.Minuto || 0}'`;
+                            `${getValue(partido, "Minuto")}'`;
                         document.getElementById('score').textContent = 
-                            `${partido.GolesLocal || 0} - ${partido.GolesVisitante || 0}`;
+                            `${getValue(partido, "GolesLocal")} - ${getValue(partido, "GolesVisitante")}`;
                         document.getElementById('corners').textContent = 
-                            partido.Corners || 0;
+                            getValue(partido, "Corners");
                         document.getElementById('amarillas').textContent = 
-                            partido.Amarillas || 0;
+                            getValue(partido, "Amarillas");
                         
-                        // Mostrar última actualización
-                        const now = new Date();
+                        // Última actualización
                         document.getElementById('lastUpdate').textContent = 
-                            `Última actualización: ${now.toLocaleTimeString()}`;
+                            `Última actualización: ${new Date().toLocaleTimeString()}`;
                     }
                 })
                 .catch(error => {
-                    console.error("Error al cargar datos:", error);
-                    document.getElementById('matchTitle').textContent = "Error al cargar datos";
+                    console.error("Error:", error);
+                    document.getElementById('debugData').textContent = 
+                        `Error al cargar datos: ${error.message}`;
                 });
         }
 
-        // Actualizar cada 5 segundos
-        updateData(); // Carga inmediata al abrir la página
-        setInterval(updateData, 5000); // Actualización automática
+        // Iniciar
+        updateData();
+        setInterval(updateData, 5000);
     </script>
 </body>
 </html>
