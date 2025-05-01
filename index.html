@@ -3,31 +3,113 @@
 <head>
     <title>Live Bet</title>
     <style>
-        body { font-family: Arial; text-align: center; }
-        .match { border: 1px solid #ccc; padding: 20px; margin: 10px; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            text-align: center; 
+            background: #f0f2f5; 
+            padding: 20px;
+        }
+        .match {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 500px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        #matchTitle {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+        #matchTime {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        #score {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .stat {
+            font-size: 16px;
+            color: #34495e;
+        }
+        .stat span {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .last-update {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
-    <h1>Partido en Vivo</h1>
+    <h1 style="color: #2c3e50;">⚽ Live Bet Tracker</h1>
     <div class="match">
-        <h2 id="matchTitle">Boca vs River</h2>
-        <div id="matchTime">00:00</div>
+        <h2 id="matchTitle">Cargando partido...</h2>
+        <div id="matchTime">--:--</div>
         <div id="score">0 - 0</div>
+        <div class="stats">
+            <div class="stat">Corners: <span id="corners">0</span></div>
+            <div class="stat">Amarillas: <span id="amarillas">0</span></div>
+        </div>
+        <div class="last-update" id="lastUpdate">Última actualización: --</div>
     </div>
 
     <script>
-        // Actualizar cada 5 segundos
-        setInterval(() => {
-            fetch('https://opensheet.elk.sh/ID_DE_TU_HOJA/Hoja1')
+        // TU ID DE GOOGLE SHEET (ya implementado)
+        const SHEET_ID = "1C4NaNDCS0h_T34Ee6mHz4dCTTf_m3FuHId8-LypD_HY";
+        const SHEET_NAME = "Hoja1";
+        const API_URL = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_NAME}`;
+
+        function updateData() {
+            fetch(API_URL)
                 .then(response => response.json())
                 .then(data => {
-                    const partido = data[0];
-                    document.getElementById('matchTime').textContent = 
-                        `${Math.floor(partido.Tiempo / 60)}:${partido.Tiempo % 60}`;
-                    document.getElementById('score').textContent = 
-                        `${partido.GolesLocal} - ${partido.GolesVisitante}`;
+                    if (data && data.length > 0) {
+                        const partido = data[0]; // Tomamos la primera fila de tu Sheet
+                        
+                        // Actualiza la interfaz con los datos
+                        document.getElementById('matchTitle').textContent = 
+                            `${partido.Local || "Local"} vs ${partido.Visitante || "Visitante"}`;
+                        document.getElementById('matchTime').textContent = 
+                            `${partido.Minuto || 0}'`;
+                        document.getElementById('score').textContent = 
+                            `${partido.GolesLocal || 0} - ${partido.GolesVisitante || 0}`;
+                        document.getElementById('corners').textContent = 
+                            partido.Corners || 0;
+                        document.getElementById('amarillas').textContent = 
+                            partido.Amarillas || 0;
+                        
+                        // Mostrar última actualización
+                        const now = new Date();
+                        document.getElementById('lastUpdate').textContent = 
+                            `Última actualización: ${now.toLocaleTimeString()}`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al cargar datos:", error);
+                    document.getElementById('matchTitle').textContent = "Error al cargar datos";
                 });
-        }, 5000);
+        }
+
+        // Actualizar cada 5 segundos
+        updateData(); // Carga inmediata al abrir la página
+        setInterval(updateData, 5000); // Actualización automática
     </script>
 </body>
 </html>
